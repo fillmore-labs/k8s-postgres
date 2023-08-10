@@ -1,0 +1,17 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+spec:
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-pvc
+      spec:
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 1Gi
+        volumeMode: Filesystem
+        accessModes:
+          - ReadWriteOnce

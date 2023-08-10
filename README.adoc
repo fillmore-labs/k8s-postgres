@@ -1,0 +1,91 @@
+= Simple PostgreSQL on Kubernetes
+:Author:    Oliver Eikemeier
+:Email:     <eikemeier@fillmore-labs.com>
+:Date:      2023-08
+:Revision:  v0.1
+:toc: macro
+
+toc::[]
+
+== Purpose
+
+A simple PostgreSQL instance in a Kubernetes cluster, for development.
+
+== Configuration
+
+Start by copying link:k8s/fillmore-labs[] to k8s/myconfig
+
+=== PostgreSQL Root Password
+
+Edit (in your configuration) link:k8s/fillmore-labs/secrets.env[secrets.env]
+and set `+POSTGRES_PASSWORD+`.
+
+=== Initial User and Database
+
+Edit (in your configuration) link:k8s/fillmore-labs/01-initdb.sql[01-initdb.sql]
+and replace `+user+` with the username, `+SCRAM-SHA-256+` with the password
+and `+database+` with the initial database you want to use.
+
+For a pre-encrypted password use https://github.com/fillmore-labs/pgpasswd[this project].
+
+=== Storage
+
+K3s https://docs.k3s.io/storage#setting-up-the-local-storage-provider[comes with] https://github.com/rancher/local-path-provisioner[Rancher's Local Path Provisioner] and this example uses that.
+
+https://kubernetes.io/docs/concepts/storage/persistent-volumes/[Adapt] to your cloud provider.
+
+=== Namespace
+
+The example deploys to an existing namespace `+pg+` in link:k8s/fillmore-labs/kustomization.yaml[kustomization.yaml].
+
+Choose one existing or create it with
+
+[source,shell]
+kubectl apply -f namespace.yaml
+
+== Starting the Server
+
+When you configured everything to your liking, start the server with
+
+[source,shell]
+kubectl apply -k k8s/fillmore-labs
+
+Or k8s/myconfig, if that's what you are using.
+
+Test the configuration with
+
+[source,shell]
+kubectl run -i -t psql --image=docker.io/library/postgres:15-alpine \
+  --rm --restart=Never -- \
+  psql -d postgresql://user:password@postgres.pg.svc.cluster.local:5432/database -l
+
+Substituting `+user+`, `+password+`, `+pg+` and `+database+` with your values.
+
+== Deletion
+
+With
+
+[source,shell]
+kubectl delete -k k8s/fillmore-labs
+
+The server is deleted. The data is still kept, so you can upgrade the server.
+
+To delete the data, look for the claim
+
+[source,shell]
+kubectl get pvc -n pg
+
+And delete it permanently with
+
+[source,shell]
+kubectl delete pvc -n pg postgres-pvc-postgresql-0
+
+Also, remove the namespace with
+
+[source,shell]
+kubectl delete -f namespace.yaml
+
+== References
+
+- https://hub.docker.com/_/postgres[Docker Official PostgreSQL Image]
+- https://github.com/rancher/local-path-provisioner/[Local Path Provisioner]
