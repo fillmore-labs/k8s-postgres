@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: postgresql
-          image: docker.io/library/postgres:15-alpine
+          image: docker.io/library/postgres:16-alpine
           ports:
             - name: postgres
               containerPort: 5432
@@ -44,6 +44,11 @@ spec:
               readOnly: true
             - name: var
               mountPath: /var/run/postgresql
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+      automountServiceAccountToken: false
       volumes:
         - name: init-volume
           configMap:

@@ -8,4 +8,4 @@ CREATE DATABASE "database" WITH
 
 COMMENT ON
     DATABASE "database"
-    IS 'sample database for name service';
+    IS 'sample database';
